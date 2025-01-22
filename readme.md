@@ -1,6 +1,6 @@
 # What is it
 
-This is yet another telegram dating bot. Working based on `tf-idf` idead
+This is yet another telegram dating bot. Working based on `tf-idf` idea
 
 ## How to run it
 
@@ -13,3 +13,6 @@ cargo run
 ```sh
 cargo fmt
 ```
+
+## References
+
