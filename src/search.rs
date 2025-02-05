@@ -18,5 +18,6 @@ pub fn compute_idf(req_word: &str, documents: &[&[&str]]) -> f32 {
             }
         }
     }
+    // TODO: count == 0?
     (documents.len() as f32 / count).log10()
 }

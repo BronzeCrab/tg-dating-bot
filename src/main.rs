@@ -6,13 +6,16 @@ use teloxide::prelude::*;
 mod db_operations;
 use db_operations::{try_to_create_db_tables, try_to_insert_user_data};
 mod search;
-use search::{compute_tf, compute_idf} ;
+use search::{compute_idf, compute_tf};
+mod utils;
 
 #[tokio::main]
 async fn main() {
     let req_word: &str = "this";
     let words: [&str; 5] = ["this  ", "is", "a  ", "a  ", "sample"];
-    let words2: [&str; 7] = ["this", "is", "another", "another", "example", "example", "example"];
+    let words2: [&str; 7] = [
+        "this", "is", "another", "another", "example", "example", "example",
+    ];
     let docs: [&[&str]; 2] = [&words, &words2];
 
     let term_freq: f32 = compute_tf(req_word, &words);
