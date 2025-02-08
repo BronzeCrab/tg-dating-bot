@@ -4,10 +4,14 @@ use std::env;
 use teloxide::prelude::*;
 
 mod db_operations;
-use db_operations::{try_to_create_db_tables, try_to_insert_user_data};
+use db_operations::{
+    try_to_create_db_tables, try_to_insert_user_data, try_to_insert_user_token_relations,
+    try_to_insert_user_tokens,
+};
 mod search;
 use search::{compute_idf, compute_tf};
 mod utils;
+use utils::split_into_tokens;
 
 #[tokio::main]
 async fn main() {
@@ -42,8 +46,14 @@ async fn main() {
     match try_to_create_db_tables(&conn) {
         Ok(res) => {
             println!("INFO: create db res: {:?}", res);
-            match try_to_insert_user_data(&conn, "afoobar", "sport123, games, music") {
-                Ok(res) => println!("INFO: insert data res: {:?}", res),
+            let description: &str = "sport123,     games, ,,,  music   ";
+            match try_to_insert_user_data(&conn, "afoobar", description) {
+                Ok(res) => {
+                    println!("INFO: insert data res: {:?}", res);
+                    let user_id: u32 = res;
+                    let tokens: Vec<&str> = split_into_tokens(description);
+                    println!("Split into tokens: {:?}", tokens);
+                }
                 Err(error) => println!("ERROR: insert data: {:?}", error),
             };
         }

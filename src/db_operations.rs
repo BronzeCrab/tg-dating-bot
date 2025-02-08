@@ -1,3 +1,4 @@
+use rusqlite::fallible_iterator::FallibleIterator;
 use rusqlite::{Connection, Error, Result, Statement};
 
 pub fn try_to_create_db_tables(conn: &Connection) -> Result<(), Error> {
@@ -5,6 +6,7 @@ pub fn try_to_create_db_tables(conn: &Connection) -> Result<(), Error> {
         "CREATE TABLE user (
             id INTEGER PRIMARY KEY,
             tg_username TEXT NOT NULL UNIQUE,
+            gender INTEGER,
             description TEXT NOT NULL
         );
         ",
@@ -37,15 +39,40 @@ pub fn try_to_insert_user_data(
     conn: &Connection,
     tg_username: &str,
     description: &str,
-) -> Result<(), Error> {
-    let _res = conn.execute(
-        &format!(
-            "INSERT INTO user (tg_username, description) VALUES
-            ('{tg_username}', '{description}') RETURNING user.id;"
-        ),
-        (),
-    );
-    Ok(())
+) -> Result<u32, Error> {
+    let mut stmt = conn
+        .prepare(&format!(
+            "INSERT INTO user (tg_username, description, gender) VALUES
+        ('{tg_username}', '{description}', 1) RETURNING user.id;"
+        ))
+        .unwrap();
+    let rows = stmt.query([]).unwrap();
+    match rows.map(|r| r.get(0)).collect::<Vec<u32>>() {
+        Ok(res) => return Ok(res[0]),
+        Err(err) => return Err(err),
+    };
+}
+
+pub fn try_to_insert_user_tokens(conn: &Connection, tokens: Vec<&str>) -> Result<Vec<u32>, Error> {
+    let mut tokens_ids: Vec<u32> = Vec::new();
+    for token in tokens {
+        let idf: f32 = 0.0;
+        let mut stmt = conn
+            .prepare(&format!(
+                "INSERT INTO token (name, idf) VALUES 
+            ({token}, {idf}) RETURNING token.id;"
+            ))
+            .unwrap();
+
+        let rows = stmt.query([]).unwrap();
+        match rows.map(|r| r.get(0)).collect::<Vec<u32>>() {
+            Ok(res) => {
+                tokens_ids.push(res[0]);
+            }
+            Err(err) => return Err(err),
+        };
+    }
+    Ok(tokens_ids)
 }
 
 pub fn try_to_insert_user_token_relations(
@@ -56,7 +83,7 @@ pub fn try_to_insert_user_token_relations(
     for token_id in tokens_ids {
         let _ = conn.execute(
             &format!(
-                "INSERT INTO user_token (user_id, tokens_ids) VALUES 
+                "INSERT INTO user_token (user_id, token_id) VALUES 
                 ({user_id}, {token_id});"
             ),
             (),
