@@ -15,8 +15,7 @@ pub fn try_to_create_db_tables(conn: &Connection) -> Result<(), Error> {
     conn.execute(
         "CREATE TABLE token (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
-            idf REAL NOT NULL
+            name TEXT NOT NULL UNIQUE
         );
         ",
         (),
@@ -43,7 +42,7 @@ pub fn try_to_insert_user_data(
     let mut stmt = conn
         .prepare(&format!(
             "INSERT INTO user (tg_username, description, gender) VALUES
-        ('{tg_username}', '{description}', 1) RETURNING user.id;"
+            ('{tg_username}', '{description}', 1) RETURNING user.id;"
         ))
         .unwrap();
     let rows = stmt.query([]).unwrap();
@@ -53,14 +52,16 @@ pub fn try_to_insert_user_data(
     };
 }
 
-pub fn try_to_insert_user_tokens(conn: &Connection, tokens: Vec<&str>) -> Result<Vec<u32>, Error> {
+pub fn try_to_insert_user_tokens(
+    conn: &Connection,
+    tokens: Vec<String>,
+) -> Result<Vec<u32>, Error> {
     let mut tokens_ids: Vec<u32> = Vec::new();
     for token in tokens {
-        let idf: f32 = 0.0;
         let mut stmt = conn
             .prepare(&format!(
-                "INSERT INTO token (name, idf) VALUES 
-            ({token}, {idf}) RETURNING token.id;"
+                "INSERT INTO token (name) VALUES 
+                ('{token}') RETURNING token.id;"
             ))
             .unwrap();
 

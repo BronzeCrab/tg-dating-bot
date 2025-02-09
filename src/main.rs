@@ -53,6 +53,8 @@ async fn main() {
                     let user_id: u32 = res;
                     let tokens: Vec<String> = split_into_tokens(description);
                     println!("Split into tokens: {:?}", tokens);
+                    let tokens_ids: Vec<u32> = try_to_insert_user_tokens(&conn, tokens).unwrap();
+                    try_to_insert_user_token_relations(&conn, user_id, tokens_ids);
                 }
                 Err(error) => println!("ERROR: insert data: {:?}", error),
             };
