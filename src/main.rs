@@ -46,12 +46,12 @@ async fn main() {
     match try_to_create_db_tables(&conn) {
         Ok(res) => {
             println!("INFO: create db res: {:?}", res);
-            let description: &str = "sport123,     games, ,,,  music   ";
+            let description: &str = "sport123,games,music";
             match try_to_insert_user_data(&conn, "afoobar", description) {
                 Ok(res) => {
                     println!("INFO: insert data res: {:?}", res);
                     let user_id: u32 = res;
-                    let tokens: Vec<&str> = split_into_tokens(description);
+                    let tokens: Vec<String> = split_into_tokens(description);
                     println!("Split into tokens: {:?}", tokens);
                 }
                 Err(error) => println!("ERROR: insert data: {:?}", error),
