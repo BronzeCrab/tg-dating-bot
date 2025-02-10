@@ -15,7 +15,7 @@ pub fn try_to_create_db_tables(conn: &Connection) -> Result<(), Error> {
     conn.execute(
         "CREATE TABLE token (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE
+            name TEXT NOT NULL UNIQUE COLLATE NOCASE
         );
         ",
         (),
@@ -52,6 +52,22 @@ pub fn try_to_insert_user_data(
     };
 }
 
+fn get_token_id_by_name(conn: &Connection, token_name: String) -> Result<u32, Error> {
+    let mut stmt = conn
+        .prepare(&format!(
+            "SELECT token.id FROM token WHERE token.name = '{token_name}';"
+        ))
+        .unwrap();
+
+    let rows = stmt.query([]).unwrap();
+    match rows.map(|r| r.get(0)).collect::<Vec<u32>>() {
+        Ok(res) => Ok(res[0]),
+        Err(err) => {
+            return Err(err);
+        }
+    }
+}
+
 pub fn try_to_insert_user_tokens(
     conn: &Connection,
     tokens: Vec<String>,
@@ -70,7 +86,11 @@ pub fn try_to_insert_user_tokens(
             Ok(res) => {
                 tokens_ids.push(res[0]);
             }
-            Err(err) => return Err(err),
+            Err(err) => {
+                println!("we are here, and err is {err}");
+                let token_id: u32 = get_token_id_by_name(&conn, token).unwrap();
+                tokens_ids.push(token_id);
+            }
         };
     }
     Ok(tokens_ids)
@@ -89,6 +109,6 @@ pub fn try_to_insert_user_token_relations(
             ),
             (),
         );
-    }
+    };
     Ok(())
 }
