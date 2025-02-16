@@ -5,11 +5,13 @@ pub fn split_into_tokens(description: &str) -> Vec<String> {
         if el.is_alphanumeric() {
             word.push_str(&el.to_lowercase().to_string());
         } else if word.len() > 0 {
-            res.push(word);
+            if !res.contains(&word) {
+                res.push(word);
+            };
             word = String::new();
         };
     }
-    if word.len() > 0 {
+    if word.len() > 0 && !res.contains(&word)  {
         res.push(word);
     }
     res

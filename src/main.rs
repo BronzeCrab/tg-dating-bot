@@ -5,8 +5,8 @@ use teloxide::prelude::*;
 
 mod db_operations;
 use db_operations::{
-    try_to_create_db_tables, try_to_insert_user_data, try_to_insert_user_token_relations,
-    try_to_insert_user_tokens,
+    get_tokens_by_user_id, try_to_create_db_tables, try_to_insert_user_data,
+    try_to_insert_user_token_relations, try_to_insert_user_tokens,
 };
 mod search;
 use search::{compute_idf, compute_tf};
@@ -46,29 +46,42 @@ async fn main() {
     match try_to_create_db_tables(&conn) {
         Ok(res) => {
             println!("INFO: create db res: {:?}", res);
-            let description: &str = "sport123,games,music,MUSIC";
-            match try_to_insert_user_data(&conn, "afoobar", description) {
-                Ok(res) => {
-                    println!("INFO: insert data res: {:?}", res);
-                    let user_id: u32 = res;
-                    let tokens: Vec<String> = split_into_tokens(description);
-                    println!("Split into tokens: {:?}", tokens);
-                    let tokens_ids: Vec<u32> = try_to_insert_user_tokens(&conn, tokens).unwrap();
-                    println!("Tokens_ids: {:?}", tokens_ids);
-                    try_to_insert_user_token_relations(&conn, user_id, tokens_ids);
+            for i in 1..3 {
+                let description: &str;
+                let tg_username: &str;
+                if i == 1 {
+                    description = "sport123,games,music,MUSIC";
+                    tg_username = "test1";
                 }
-                Err(error) => println!("ERROR: insert data: {:?}", error),
+                else {
+                    description = "sport123,alko,grugs";
+                    tg_username = "test2";
+                }
+                match try_to_insert_user_data(&conn, tg_username, description) {
+                    Ok(user_id) => {
+                        println!("INFO: insert data res user_id: {:?}", user_id);
+                        let tokens: Vec<String> = split_into_tokens(description);
+                        println!("Split into tokens: {:?}", tokens);
+                        let tokens_ids: Vec<u32> = try_to_insert_user_tokens(&conn, tokens).unwrap();
+                        println!("Tokens_ids: {:?}", tokens_ids);
+                        try_to_insert_user_token_relations(&conn, user_id, tokens_ids);
+                        println!("Get user tokens by user_id");
+                        let user_tokens = get_tokens_by_user_id(&conn, user_id);
+                        println!("Token names by user_id {user_id}: {:?}", user_tokens);
+                    }
+                    Err(error) => println!("ERROR: insert data: {:?}", error),
+                };
             };
         }
         Err(error) => println!("ERROR: create db: {:?}", error),
     };
 
-    let bot = Bot::new(tg_bot_token);
+    // let bot = Bot::new(tg_bot_token);
 
-    teloxide::repl(bot, |bot: Bot, msg: Message| async move {
-        println!("Recieve msg {:?}", msg);
-        bot.send_dice(msg.chat.id).await?;
-        Ok(())
-    })
-    .await;
+    // teloxide::repl(bot, |bot: Bot, msg: Message| async move {
+    //     println!("Recieve msg {:?}", msg);
+    //     bot.send_dice(msg.chat.id).await?;
+    //     Ok(())
+    // })
+    // .await;
 }
