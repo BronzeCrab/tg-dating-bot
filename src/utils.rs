@@ -1,3 +1,5 @@
+use rusqlite::Connection;
+
 pub fn split_into_tokens(description: &str) -> Vec<String> {
     let mut res: Vec<String> = vec![];
     let mut word: String = String::new();
@@ -5,14 +7,14 @@ pub fn split_into_tokens(description: &str) -> Vec<String> {
         if el.is_alphanumeric() {
             word.push_str(&el.to_lowercase().to_string());
         } else if word.len() > 0 {
-            if !res.contains(&word) {
-                res.push(word);
-            };
+            res.push(word);
             word = String::new();
         };
     }
-    if word.len() > 0 && !res.contains(&word)  {
+    if word.len() > 0 {
         res.push(word);
     }
     res
 }
+
+pub fn compute_tf_idf(conn: &Connection, tg_username: &str) {}

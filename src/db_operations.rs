@@ -39,6 +39,7 @@ pub fn try_to_insert_user_data(
     tg_username: &str,
     description: &str,
 ) -> Result<u32, Error> {
+    let tg_username = tg_username.trim().to_lowercase();
     let mut stmt = conn
         .prepare(&format!(
             "INSERT INTO user (tg_username, description, gender) VALUES
@@ -89,7 +90,9 @@ pub fn try_to_insert_user_tokens(
             Err(err) => {
                 println!("we are here, and err is {err}");
                 let token_id: u32 = get_token_id_by_name(&conn, token).unwrap();
-                tokens_ids.push(token_id);
+                if !tokens_ids.contains(&token_id) {
+                    tokens_ids.push(token_id);
+                };
             }
         };
     }
@@ -123,4 +126,30 @@ pub fn get_tokens_by_user_id(conn: &Connection, user_id: u32) -> Vec<String> {
         .unwrap();
     let rows = stmt.query([]).unwrap();
     rows.map(|r| r.get(0)).collect::<Vec<String>>().unwrap()
+}
+
+pub fn get_all_other_user_ids(conn: &Connection, user_id: u32) -> Vec<u32> {
+    let mut stmt = conn
+        .prepare(&format!(
+            "SELECT user.id FROM user WHERE user.id != {user_id};"
+        ))
+        .unwrap();
+    let rows = stmt.query([]).unwrap();
+    rows.map(|r| r.get(0)).collect::<Vec<u32>>().unwrap()
+}
+
+pub fn get_user_id_by_tg_username(conn: &Connection, tg_username: &str) -> Result<u32, Error> {
+    let tg_username = tg_username.trim().to_lowercase();
+    let mut stmt = conn
+        .prepare(&format!(
+            "SELECT user.id FROM user WHERE user.tg_username = '{tg_username}';"
+        ))
+        .unwrap();
+    let rows = stmt.query([]).unwrap();
+    match rows.map(|r| r.get(0)).collect::<Vec<u32>>() {
+        Ok(res) => Ok(res[0]),
+        Err(err) => {
+            return Err(err);
+        }
+    }
 }

@@ -5,8 +5,8 @@ use teloxide::prelude::*;
 
 mod db_operations;
 use db_operations::{
-    get_tokens_by_user_id, try_to_create_db_tables, try_to_insert_user_data,
-    try_to_insert_user_token_relations, try_to_insert_user_tokens,
+    get_all_other_user_ids, get_tokens_by_user_id, try_to_create_db_tables,
+    try_to_insert_user_data, try_to_insert_user_token_relations, try_to_insert_user_tokens,
 };
 mod search;
 use search::{compute_idf, compute_tf};
@@ -52,8 +52,7 @@ async fn main() {
                 if i == 1 {
                     description = "sport123,games,music,MUSIC";
                     tg_username = "test1";
-                }
-                else {
+                } else {
                     description = "sport123,alko,grugs";
                     tg_username = "test2";
                 }
@@ -62,16 +61,19 @@ async fn main() {
                         println!("INFO: insert data res user_id: {:?}", user_id);
                         let tokens: Vec<String> = split_into_tokens(description);
                         println!("Split into tokens: {:?}", tokens);
-                        let tokens_ids: Vec<u32> = try_to_insert_user_tokens(&conn, tokens).unwrap();
+                        let tokens_ids: Vec<u32> =
+                            try_to_insert_user_tokens(&conn, tokens).unwrap();
                         println!("Tokens_ids: {:?}", tokens_ids);
                         try_to_insert_user_token_relations(&conn, user_id, tokens_ids);
                         println!("Get user tokens by user_id");
-                        let user_tokens = get_tokens_by_user_id(&conn, user_id);
+                        let user_tokens: Vec<String> = get_tokens_by_user_id(&conn, user_id);
                         println!("Token names by user_id {user_id}: {:?}", user_tokens);
+                        let other_user_ids: Vec<u32> = get_all_other_user_ids(&conn, user_id);
+                        println!("All other user_ids: {:?}", other_user_ids)
                     }
                     Err(error) => println!("ERROR: insert data: {:?}", error),
                 };
-            };
+            }
         }
         Err(error) => println!("ERROR: create db: {:?}", error),
     };
