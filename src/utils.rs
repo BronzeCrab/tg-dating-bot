@@ -42,6 +42,7 @@ pub fn compute_tf_idf(conn: &Connection, tg_username: &str) -> HashMap<String, H
                 idf_counter += 1.0;
             }
         }
+        // TODO: handle idf_counter == 0 case:
         let token_idf: f32 = (other_user_ids.len() as f32 / idf_counter).log10();
 
         let mut token_tf_idfs: HashMap<u32, f32> = HashMap::new();

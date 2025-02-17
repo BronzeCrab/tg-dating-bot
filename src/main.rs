@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use dotenv::dotenv;
 use rusqlite::{Connection, Error, Result, Statement};
 use std::env;
@@ -11,7 +13,7 @@ use db_operations::{
 mod search;
 use search::{compute_idf, compute_tf};
 mod utils;
-use utils::split_into_tokens;
+use utils::{compute_tf_idf, split_into_tokens};
 
 #[tokio::main]
 async fn main() {
@@ -69,7 +71,11 @@ async fn main() {
                         let user_tokens: Vec<String> = get_tokens_by_user_id(&conn, user_id);
                         println!("Token names by user_id {user_id}: {:?}", user_tokens);
                         let other_user_ids: Vec<u32> = get_all_other_user_ids(&conn, user_id);
-                        println!("All other user_ids: {:?}", other_user_ids)
+                        println!("All other user_ids: {:?}", other_user_ids);
+
+                        let res: HashMap<String, HashMap<u32, f32>> =
+                            compute_tf_idf(&conn, tg_username);
+                        println!("{:?}", res);
                     }
                     Err(error) => println!("ERROR: insert data: {:?}", error),
                 };
