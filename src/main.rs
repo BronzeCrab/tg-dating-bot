@@ -22,15 +22,15 @@ async fn main() {
     ];
     let docs: [&[&str]; 2] = [&words, &words2];
 
-    let term_freq: f32 = compute_tf(req_word, &words);
-    println!("1 term_freq is {term_freq}");
+    // let term_freq: f32 = compute_tf(req_word, &words);
+    // println!("1 term_freq is {term_freq}");
 
-    let term_freq: f32 = compute_tf(req_word, &words2);
-    println!("2 term_freq is {term_freq}");
+    // let term_freq: f32 = compute_tf(req_word, &words2);
+    // println!("2 term_freq is {term_freq}");
 
-    let term: &str = "example";
-    let idf: f32 = compute_idf(term, &docs);
-    println!("idf of {term} is {idf}");
+    // let term: &str = "example";
+    // let idf: f32 = compute_idf(term, &docs);
+    // println!("idf of {term} is {idf}");
 
     dotenv().ok();
     let tg_bot_token: String = env::var("TELEGRAM_BOT_TOKEN").unwrap();
