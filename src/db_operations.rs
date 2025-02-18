@@ -1,5 +1,5 @@
 use rusqlite::fallible_iterator::FallibleIterator;
-use rusqlite::{Connection, Error, Result, Statement};
+use rusqlite::{Connection, Error, Result};
 
 pub fn try_to_create_db_tables(conn: &Connection) -> Result<(), Error> {
     conn.execute(

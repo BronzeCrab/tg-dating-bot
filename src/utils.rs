@@ -1,7 +1,7 @@
 use crate::db_operations::{
     get_all_other_user_ids, get_tokens_by_user_id, get_user_id_by_tg_username,
 };
-use crate::search::{compute_idf, compute_tf};
+use crate::search::compute_tf;
 use rusqlite::Connection;
 use std::collections::HashMap;
 
@@ -27,8 +27,8 @@ pub fn compute_tf_idf(conn: &Connection, tg_username: &str) -> HashMap<String, H
 
     let user_id: u32 = get_user_id_by_tg_username(&conn, tg_username).unwrap();
     let user_tokens: Vec<String> = get_tokens_by_user_id(&conn, user_id);
-
     let other_user_ids: Vec<u32> = get_all_other_user_ids(&conn, user_id);
+
     for user_token in user_tokens {
         let mut token_tfs: HashMap<u32, f32> = HashMap::new();
         let mut idf_counter: f32 = 0.0;
@@ -42,7 +42,9 @@ pub fn compute_tf_idf(conn: &Connection, tg_username: &str) -> HashMap<String, H
                 idf_counter += 1.0;
             }
         }
-        // TODO: handle idf_counter == 0 case:
+        if idf_counter == 0.0 {
+            continue;
+        }
         let token_idf: f32 = (other_user_ids.len() as f32 / idf_counter).log10();
 
         let mut token_tf_idfs: HashMap<u32, f32> = HashMap::new();
@@ -53,4 +55,38 @@ pub fn compute_tf_idf(conn: &Connection, tg_username: &str) -> HashMap<String, H
         tf_idf_res.insert(user_token, token_tf_idfs);
     }
     tf_idf_res
+}
+
+pub fn get_users_ratings(tf_idf_map: HashMap<String, HashMap<u32, f32>>) -> HashMap<u32, f32> {
+    let mut user_rating: HashMap<u32, f32> = HashMap::new();
+    let mut counters: HashMap<u32, f32> = HashMap::new();
+
+    for (token, token_tf_idfs) in tf_idf_map {
+        for (user_id, tf_idf) in token_tf_idfs {
+            let rating = user_rating.entry(user_id).or_insert(0.0);
+            *rating += tf_idf;
+            let counter = counters.entry(user_id).or_insert(0.0);
+            *counter += 1.0;
+        }
+    }
+
+    for (user_id, rating) in &mut user_rating {
+        let counter = counters.get(&user_id).unwrap();
+        *rating /= counter;
+    }
+
+    user_rating
+}
+
+pub fn convert_hashmap_to_vec_of_tuples(user_rating: HashMap<u32, f32>) -> Vec<(u32, f32)> {
+    let mut res: Vec<(u32, f32)> = vec![];
+    for (user_id, user_rating) in user_rating {
+        res.push((user_id, user_rating));
+    }
+    res
+}
+
+pub fn sort_vec_of_tuples_by_second(mut user_rating: Vec<(u32, f32)>) -> Vec<(u32, f32)> {
+    user_rating.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+    user_rating
 }
