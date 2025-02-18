@@ -61,7 +61,7 @@ pub fn get_users_ratings(tf_idf_map: HashMap<String, HashMap<u32, f32>>) -> Hash
     let mut user_rating: HashMap<u32, f32> = HashMap::new();
     let mut counters: HashMap<u32, f32> = HashMap::new();
 
-    for (token, token_tf_idfs) in tf_idf_map {
+    for (_token, token_tf_idfs) in tf_idf_map {
         for (user_id, tf_idf) in token_tf_idfs {
             let rating = user_rating.entry(user_id).or_insert(0.0);
             *rating += tf_idf;
@@ -86,7 +86,7 @@ pub fn convert_hashmap_to_vec_of_tuples(user_rating: HashMap<u32, f32>) -> Vec<(
     res
 }
 
-pub fn sort_vec_of_tuples_by_second(mut user_rating: Vec<(u32, f32)>) -> Vec<(u32, f32)> {
-    user_rating.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+pub fn sort_vec_of_tuples_by_second_elem(mut user_rating: Vec<(u32, f32)>) -> Vec<(u32, f32)> {
+    user_rating.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
     user_rating
 }
