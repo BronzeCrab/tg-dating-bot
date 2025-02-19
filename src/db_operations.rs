@@ -38,12 +38,13 @@ pub fn try_to_insert_user_data(
     conn: &Connection,
     tg_username: &str,
     description: &str,
+    gender: u8,
 ) -> Result<u32, Error> {
     let tg_username = tg_username.trim().to_lowercase();
     let mut stmt = conn
         .prepare(&format!(
             "INSERT INTO user (tg_username, description, gender) VALUES
-            ('{tg_username}', '{description}', 1) RETURNING user.id;"
+            ('{tg_username}', '{description}', {gender}) RETURNING user.id;"
         ))
         .unwrap();
     let rows = stmt.query([]).unwrap();
@@ -128,10 +129,10 @@ pub fn get_tokens_by_user_id(conn: &Connection, user_id: u32) -> Vec<String> {
     rows.map(|r| r.get(0)).collect::<Vec<String>>().unwrap()
 }
 
-pub fn get_all_other_user_ids(conn: &Connection, user_id: u32) -> Vec<u32> {
+pub fn get_all_other_user_ids(conn: &Connection, user_id: u32, gender: u8) -> Vec<u32> {
     let mut stmt = conn
         .prepare(&format!(
-            "SELECT user.id FROM user WHERE user.id != {user_id};"
+            "SELECT user.id FROM user WHERE user.id != {user_id} AND user.gender = {gender};"
         ))
         .unwrap();
     let rows = stmt.query([]).unwrap();

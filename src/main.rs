@@ -59,7 +59,7 @@ async fn main() {
                     description = "sport123,alko,grugs";
                     tg_username = "test2";
                 }
-                match try_to_insert_user_data(&conn, tg_username, description) {
+                match try_to_insert_user_data(&conn, tg_username, description, 1) {
                     Ok(user_id) => {
                         println!("INFO: insert data res user_id: {:?}", user_id);
                         let tokens: Vec<String> = split_into_tokens(description);
@@ -71,11 +71,11 @@ async fn main() {
                         println!("Get user tokens by user_id");
                         let user_tokens: Vec<String> = get_tokens_by_user_id(&conn, user_id);
                         println!("Token names by user_id {user_id}: {:?}", user_tokens);
-                        let other_user_ids: Vec<u32> = get_all_other_user_ids(&conn, user_id);
+                        let other_user_ids: Vec<u32> = get_all_other_user_ids(&conn, user_id, 1);
                         println!("All other user_ids: {:?}", other_user_ids);
 
                         let res: HashMap<String, HashMap<u32, f32>> =
-                            compute_tf_idf(&conn, tg_username);
+                            compute_tf_idf(&conn, tg_username, 1);
                         println!("{:?}", res);
 
                         let vec: Vec<String> = get_tg_username_and_desc(&conn, user_id).unwrap();

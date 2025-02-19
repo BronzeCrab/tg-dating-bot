@@ -22,12 +22,16 @@ pub fn split_into_tokens(description: &str) -> Vec<String> {
     res
 }
 
-pub fn compute_tf_idf(conn: &Connection, tg_username: &str) -> HashMap<String, HashMap<u32, f32>> {
+pub fn compute_tf_idf(
+    conn: &Connection,
+    tg_username: &str,
+    gender: u8,
+) -> HashMap<String, HashMap<u32, f32>> {
     let mut tf_idf_res: HashMap<String, HashMap<u32, f32>> = HashMap::new();
 
     let user_id: u32 = get_user_id_by_tg_username(&conn, tg_username).unwrap();
     let user_tokens: Vec<String> = get_tokens_by_user_id(&conn, user_id);
-    let other_user_ids: Vec<u32> = get_all_other_user_ids(&conn, user_id);
+    let other_user_ids: Vec<u32> = get_all_other_user_ids(&conn, user_id, gender);
 
     for user_token in user_tokens {
         let mut token_tfs: HashMap<u32, f32> = HashMap::new();
