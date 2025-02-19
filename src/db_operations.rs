@@ -153,3 +153,19 @@ pub fn get_user_id_by_tg_username(conn: &Connection, tg_username: &str) -> Resul
         }
     }
 }
+
+pub fn get_tg_username_and_desc(conn: &Connection, user_id: u32) -> Result<Vec<String>> {
+    let mut stmt = conn
+        .prepare(&format!(
+            "SELECT user.tg_username, user.description
+            FROM user WHERE user.id = {user_id};"
+        ))
+        .unwrap();
+    let mut rows = stmt.query([]).unwrap();
+    let mut res: Vec<String> = vec![];
+    while let Some(row) = rows.next()? {
+        res.push(row.get(0)?);
+        res.push(row.get(1)?);
+    }
+    Ok(res)
+}

@@ -7,8 +7,9 @@ use teloxide::prelude::*;
 
 mod db_operations;
 use db_operations::{
-    get_all_other_user_ids, get_tokens_by_user_id, try_to_create_db_tables,
-    try_to_insert_user_data, try_to_insert_user_token_relations, try_to_insert_user_tokens,
+    get_all_other_user_ids, get_tg_username_and_desc, get_tokens_by_user_id,
+    try_to_create_db_tables, try_to_insert_user_data, try_to_insert_user_token_relations,
+    try_to_insert_user_tokens,
 };
 mod search;
 use search::{compute_idf, compute_tf};
@@ -76,6 +77,10 @@ async fn main() {
                         let res: HashMap<String, HashMap<u32, f32>> =
                             compute_tf_idf(&conn, tg_username);
                         println!("{:?}", res);
+
+                        let vec: Vec<String> = get_tg_username_and_desc(&conn, user_id).unwrap();
+                        println!("get_tg_username_and_desc");
+                        println!("{:?}", vec);
                     }
                     Err(error) => println!("ERROR: insert data: {:?}", error),
                 };
