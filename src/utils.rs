@@ -57,7 +57,7 @@ pub fn compute_tf_idf(conn: &Connection, tg_username: &str) -> HashMap<String, H
     tf_idf_res
 }
 
-pub fn get_users_ratings(tf_idf_map: HashMap<String, HashMap<u32, f32>>) -> HashMap<u32, f32> {
+pub fn get_users_ratings(tf_idf_map: HashMap<String, HashMap<u32, f32>>) -> Vec<(u32, f32)> {
     let mut user_rating: HashMap<u32, f32> = HashMap::new();
     let mut counters: HashMap<u32, f32> = HashMap::new();
 
@@ -70,19 +70,12 @@ pub fn get_users_ratings(tf_idf_map: HashMap<String, HashMap<u32, f32>>) -> Hash
         }
     }
 
-    for (user_id, rating) in &mut user_rating {
-        let counter = counters.get(&user_id).unwrap();
-        *rating /= counter;
-    }
-
-    user_rating
-}
-
-pub fn convert_hashmap_to_vec_of_tuples(user_rating: HashMap<u32, f32>) -> Vec<(u32, f32)> {
     let mut res: Vec<(u32, f32)> = vec![];
-    for (user_id, user_rating) in user_rating {
-        res.push((user_id, user_rating));
+    for (user_id, rating) in user_rating {
+        let counter = counters.get(&user_id).unwrap();
+        res.push((user_id, rating / counter));
     }
+
     res
 }
 
