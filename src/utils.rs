@@ -48,9 +48,9 @@ pub fn compute_tf_idf(conn: &Connection, tg_username: &str) -> HashMap<String, H
         let token_idf: f32 = (other_user_ids.len() as f32 / idf_counter).log10();
 
         let mut token_tf_idfs: HashMap<u32, f32> = HashMap::new();
-        for (other_user_id, tf) in &token_tfs {
+        for (other_user_id, tf) in token_tfs {
             let token_tf_idf: f32 = tf * token_idf;
-            token_tf_idfs.insert(*other_user_id, token_tf_idf);
+            token_tf_idfs.insert(other_user_id, token_tf_idf);
         }
         tf_idf_res.insert(user_token, token_tf_idfs);
     }
