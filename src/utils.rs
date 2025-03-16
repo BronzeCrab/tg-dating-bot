@@ -5,7 +5,7 @@ use crate::search::compute_tf;
 use rusqlite::Connection;
 use std::collections::HashMap;
 
-pub fn split_into_tokens(description: &str) -> Vec<String> {
+pub fn split_desc_into_tokens(description: &str) -> Vec<String> {
     let mut res: Vec<String> = vec![];
     let mut word: String = String::new();
     for el in description.chars() {

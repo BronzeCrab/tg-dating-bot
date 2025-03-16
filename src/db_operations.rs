@@ -5,7 +5,7 @@ pub fn try_to_create_db_tables(conn: &Connection) -> Result<(), Error> {
     conn.execute(
         "CREATE TABLE user (
             id INTEGER PRIMARY KEY,
-            tg_username TEXT NOT NULL UNIQUE,
+            tg_username TEXT NOT NULL UNIQUE COLLATE NOCASE,
             gender INTEGER,
             description TEXT NOT NULL
         );
@@ -13,24 +13,26 @@ pub fn try_to_create_db_tables(conn: &Connection) -> Result<(), Error> {
         (),
     )?;
     conn.execute(
-        "CREATE TABLE token (
+        "CREATE TABLE desc_token (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE COLLATE NOCASE
-        );
-        ",
-        (),
-    )?;
-    conn.execute(
-        "CREATE TABLE user_token (
+            name TEXT NOT NULL,
             user_id INT NOT NULL,
-            token_id INT NOT NULL,
-            PRIMARY KEY (user_id, token_id),
-            FOREIGN KEY (user_id) REFERENCES user,
-            FOREIGN KEY (token_id) REFERENCES token
+            FOREIGN KEY (user_id) REFERENCES user
         );
         ",
         (),
     )?;
+    // conn.execute(
+    //     "CREATE TABLE user_token (
+    //         user_id INT NOT NULL,
+    //         token_id INT NOT NULL,
+    //         PRIMARY KEY (user_id, token_id),
+    //         FOREIGN KEY (user_id) REFERENCES user,
+    //         FOREIGN KEY (token_id) REFERENCES token
+    //     );
+    //     ",
+    //     (),
+    // )?;
     Ok(())
 }
 
@@ -54,10 +56,14 @@ pub fn try_to_insert_user_data(
     };
 }
 
-fn get_token_id_by_name(conn: &Connection, token_name: String) -> Result<u32, Error> {
+fn get_entity_id_by_name(
+    conn: &Connection,
+    table_name: &str,
+    entity_name: String,
+) -> Result<u32, Error> {
     let mut stmt = conn
         .prepare(&format!(
-            "SELECT token.id FROM token WHERE token.name = '{token_name}';"
+            "SELECT {table_name}.id FROM {table_name} WHERE {table_name}.name = '{entity_name}';"
         ))
         .unwrap();
 
@@ -70,46 +76,31 @@ fn get_token_id_by_name(conn: &Connection, token_name: String) -> Result<u32, Er
     }
 }
 
-pub fn try_to_insert_user_tokens(
-    conn: &Connection,
-    tokens: Vec<String>,
-) -> Result<Vec<u32>, Error> {
-    let mut tokens_ids: Vec<u32> = Vec::new();
+pub fn try_to_insert_user_tokens(conn: &Connection, tokens: Vec<String>) -> Result<(), Error> {
     for token in tokens {
-        let mut stmt = conn
-            .prepare(&format!(
+        conn.execute(
+            &format!(
                 "INSERT INTO token (name) VALUES 
                 ('{token}') RETURNING token.id;"
-            ))
-            .unwrap();
-
-        let rows = stmt.query([]).unwrap();
-        match rows.map(|r| r.get(0)).collect::<Vec<u32>>() {
-            Ok(res) => {
-                tokens_ids.push(res[0]);
-            }
-            Err(err) => {
-                println!("we are here, and err is {err}");
-                let token_id: u32 = get_token_id_by_name(&conn, token).unwrap();
-                if !tokens_ids.contains(&token_id) {
-                    tokens_ids.push(token_id);
-                };
-            }
-        };
+            ),
+            (),
+        )
+        .unwrap();
     }
-    Ok(tokens_ids)
+    Ok(())
 }
 
-pub fn try_to_insert_user_token_relations(
+pub fn try_to_insert_user_entity_relations(
     conn: &Connection,
     user_id: u32,
-    tokens_ids: Vec<u32>,
+    table_name: &str,
+    entities_ids: Vec<u32>,
 ) -> Result<(), Error> {
-    for token_id in tokens_ids {
+    for entity_id in entities_ids {
         let _ = conn.execute(
             &format!(
-                "INSERT INTO user_token (user_id, token_id) VALUES 
-                ({user_id}, {token_id});"
+                "INSERT INTO user_{table_name} (user_id, {table_name}_id) VALUES 
+                ({user_id}, {entity_id});"
             ),
             (),
         );
