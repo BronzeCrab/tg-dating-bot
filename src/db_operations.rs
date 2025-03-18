@@ -111,9 +111,8 @@ pub fn try_to_insert_user_entity_relations(
 pub fn get_tokens_by_user_id(conn: &Connection, user_id: u32) -> Vec<String> {
     let mut stmt = conn
         .prepare(&format!(
-            "SELECT token.name FROM token
-            INNER JOIN user_token ON user_token.token_id = token.id
-            WHERE user_token.user_id = {user_id};"
+            "SELECT desc_token.name FROM desc_token
+            WHERE desc_token.user_id = {user_id};"
         ))
         .unwrap();
     let rows = stmt.query([]).unwrap();
