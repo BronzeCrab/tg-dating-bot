@@ -98,18 +98,30 @@ pub fn try_to_insert_user_entities(
     conn: &Connection,
     entities: Vec<String>,
     table_name: &str,
-) -> Result<(), Error> {
+) -> Result<Vec<u32>, Error> {
+    let mut entities_ids: Vec<u32> = Vec::new();
     for entity in entities {
-        conn.execute(
-            &format!(
+        let mut stmt = conn
+            .prepare(&format!(
                 "INSERT INTO {table_name} (name) VALUES 
                 ('{entity}') RETURNING {table_name}.id;"
-            ),
-            (),
-        )
-        .unwrap();
+            ))
+            .unwrap();
+        let rows = stmt.query([]).unwrap();
+        match rows.map(|r| r.get(0)).collect::<Vec<u32>>() {
+            Ok(res) => {
+                entities_ids.push(res[0]);
+            }
+            Err(err) => {
+                println!("we are here, and err is {err}");
+                // let token_id: u32 = get_token_id_by_name(&conn, token).unwrap();
+                // if !tokens_ids.contains(&token_id) {
+                //     tokens_ids.push(token_id);
+                // };
+            }
+        };
     }
-    Ok(())
+    Ok(entities_ids)
 }
 
 pub fn try_to_insert_user_entity_relations(
