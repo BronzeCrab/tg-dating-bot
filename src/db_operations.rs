@@ -56,6 +56,24 @@ pub fn try_to_insert_user_data(
     };
 }
 
+pub fn try_to_insert_user_tokens(
+    conn: &Connection,
+    user_id: u32,
+    tokens: Vec<String>,
+) -> Result<(), Error> {
+    for token in tokens {
+        conn.execute(
+            &format!(
+                "INSERT INTO desc_token (name, user_id) VALUES
+            ('{token}', '{user_id}');"
+            ),
+            (),
+        )
+        .unwrap();
+    }
+    Ok(())
+}
+
 fn get_entity_id_by_name(
     conn: &Connection,
     table_name: &str,
@@ -76,12 +94,16 @@ fn get_entity_id_by_name(
     }
 }
 
-pub fn try_to_insert_user_tokens(conn: &Connection, tokens: Vec<String>) -> Result<(), Error> {
-    for token in tokens {
+pub fn try_to_insert_user_entities(
+    conn: &Connection,
+    entities: Vec<String>,
+    table_name: &str,
+) -> Result<(), Error> {
+    for entity in entities {
         conn.execute(
             &format!(
-                "INSERT INTO token (name) VALUES 
-                ('{token}') RETURNING token.id;"
+                "INSERT INTO {table_name} (name) VALUES 
+                ('{entity}') RETURNING {table_name}.id;"
             ),
             (),
         )

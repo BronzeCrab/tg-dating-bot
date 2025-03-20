@@ -64,7 +64,7 @@ async fn main() {
                         println!("INFO: insert data res user_id: {:?}", user_id);
                         let tokens: Vec<String> = split_desc_into_tokens(description);
                         println!("Split into tokens: {:?}", tokens);
-                        try_to_insert_user_tokens(&conn, tokens).unwrap();
+                        try_to_insert_user_tokens(&conn, user_id, tokens).unwrap();
                         // println!("Tokens_ids: {:?}", tokens_ids);
                         // try_to_insert_user_token_relations(&conn, user_id, tokens_ids);
                         println!("Get user tokens by user_id");
